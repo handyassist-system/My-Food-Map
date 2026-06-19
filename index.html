@@ -478,6 +478,12 @@ const SearchEngine = {
     return kw;
   },
 
+  // 店家類別對應的一般搜尋詞（沒選餐廳類別時，至少給查詢一個主詞）
+  TYPE_WORD: {
+    restaurant:"餐廳", cafe:"咖啡廳", bakery:"麵包店",
+    convenience_store:"便利商店", supermarket:"超市"
+  },
+
   // 由目前篩選狀態組出送往 Google 的查詢字串
   buildQuery(s){
     const parts = [];
@@ -487,6 +493,10 @@ const SearchEngine = {
     if (kw) parts.push(kw);
     if (s.typeKw) parts.push(this.kwForCountry(s.typeKw, s.country)); // 甜點店
     if (s.buffet) parts.push(s.country==="JP" ? "食べ放題" : "吃到飽");
+    // 沒有任何菜系關鍵字時，補一個主詞（依店家類別），否則 Google 只當成地點查不到店
+    if (!kw && !s.typeKw && !s.buffet){
+      parts.push(this.TYPE_WORD[s.type] || (s.country==="JP" ? "グルメ" : "美食"));
+    }
     if (parts.length === 0) parts.push(s.country==="JP" ? "グルメ" : "美食");
     return parts.join(" ");
   },
