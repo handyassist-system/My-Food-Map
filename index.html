@@ -76,6 +76,28 @@
     padding:7px 13px;font-size:13.5px;color:var(--ink);user-select:none;transition:.12s;
   }
   .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  /* ---------- Accordion (餐廳類別) ---------- */
+  .kw-selected{
+    display:inline-block;margin-left:6px;font-size:12px;font-weight:600;color:var(--accent-d);
+    background:#FFF3E8;border:1px solid #F4C99F;border-radius:999px;padding:1px 9px;
+  }
+  .kw-selected .x{margin-left:5px;cursor:pointer;font-weight:700}
+  .accordion{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#FCFAF6}
+  .acc-group + .acc-group{border-top:1px solid var(--line)}
+  .acc-head{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:12px 14px;font-size:14.5px;font-weight:600;color:var(--ink);cursor:pointer;user-select:none;
+  }
+  .acc-head:active{background:#F3ECE0}
+  .acc-head .acc-ar{color:var(--sub);font-size:13px;transition:transform .15s}
+  .acc-group.open .acc-head{color:var(--accent-d)}
+  .acc-group.open .acc-head .acc-ar{transform:rotate(90deg);color:var(--accent-d)}
+  .acc-body{
+    display:none;flex-wrap:wrap;gap:8px;padding:0 14px 14px;
+  }
+  .acc-group.open .acc-body{display:flex}
+  .kw-free{width:100%}
   .field{
     flex:1;min-width:150px;padding:10px 12px;border:1px solid var(--line);
     border-radius:10px;background:#FCFAF6;outline:none;
@@ -101,13 +123,28 @@
   .near-btn:active{background:#FFF3E8}
   .near-btn:disabled{opacity:.6}
 
+  /* ---------- Result bar (list primary) ---------- */
+  .result-bar{
+    display:flex;align-items:center;gap:10px;padding:10px 16px;
+    background:var(--bg);border-bottom:1px solid var(--line);
+  }
+  .result-bar #resultCount{flex:1;font-size:13px;color:var(--sub);font-weight:600}
+  .result-bar #mapToggle{
+    border:1px solid var(--line);background:#fff;border-radius:999px;
+    padding:7px 13px;font-size:13px;color:var(--accent-d);font-weight:600;white-space:nowrap;
+  }
+  .result-bar #mapToggle.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
   /* ---------- Content split ---------- */
   .split{flex:1;min-height:0;display:flex}
   .listcol{
-    width:42%;max-width:520px;min-width:300px;overflow-y:auto;
-    background:var(--bg);border-right:1px solid var(--line);
+    flex:1;min-width:0;overflow-y:auto;background:var(--bg);
   }
-  .mapcol{flex:1;position:relative;min-height:240px}
+  /* 地圖預設收起；按鈕展開才顯示 */
+  .mapcol{
+    width:46%;max-width:560px;position:relative;border-left:1px solid var(--line);display:none;
+  }
+  .split.map-on .mapcol{display:block}
   #map{position:absolute;inset:0}
   .map-warn{
     position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
@@ -115,6 +152,13 @@
   }
 
   .status{padding:14px 16px;color:var(--sub);font-size:13.5px}
+  .load-more{
+    display:block;width:calc(100% - 24px);margin:6px 12px 18px;padding:12px;
+    border:1px solid var(--accent);background:#fff;color:var(--accent-d);
+    border-radius:12px;font-size:14.5px;font-weight:600;
+  }
+  .load-more:active{background:#FFF3E8}
+  .load-more:disabled{opacity:.6}
   .card{
     background:var(--panel);margin:10px 12px;border:1px solid var(--line);border-radius:var(--radius);
     box-shadow:var(--shadow);overflow:hidden;
@@ -140,6 +184,9 @@
   .detail .drow{margin:7px 0;font-size:13.5px;display:flex;gap:8px}
   .detail .drow b{color:var(--sub);font-weight:600;min-width:46px}
   .detail a{color:var(--accent-d);text-decoration:none;word-break:break-all}
+  .hours-week{margin:7px 0;font-size:13px}
+  .hours-week summary{color:var(--accent-d);cursor:pointer}
+  .hours-week>div{margin-top:6px;color:var(--sub);line-height:1.9}
   .detail .acts{display:flex;gap:8px;margin-top:12px}
   .detail .acts a{
     flex:1;text-align:center;background:var(--accent);color:#fff;border-radius:9px;
@@ -150,7 +197,16 @@
   /* ---------- Favorites view ---------- */
   .fav-view{display:none;flex:1;overflow-y:auto;background:var(--bg)}
   .fav-view.show{display:block}
-  .fav-filter{display:flex;gap:6px;padding:14px 16px 4px;flex-wrap:wrap}
+  .fav-filter{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+  .fav-bar{display:flex;align-items:flex-start;gap:8px;padding:14px 16px 4px}
+  .fav-bar #favMapToggle{
+    border:1px solid var(--line);background:#fff;border-radius:999px;
+    padding:7px 13px;font-size:13px;color:var(--accent-d);font-weight:600;white-space:nowrap;
+  }
+  .fav-bar #favMapToggle.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  #favMapWrap{display:none;height:300px;margin:10px 12px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;position:relative}
+  #favMapWrap.show{display:block}
+  #favMap{position:absolute;inset:0}
   .empty{text-align:center;color:var(--sub);padding:60px 24px;font-size:14px}
 
   .pill{display:inline-block;font-size:11.5px;padding:2px 9px;border-radius:999px;font-weight:600}
@@ -170,8 +226,8 @@
     #app{height:auto;min-height:100vh}
     main{flex:none}
     .split{flex-direction:column;height:auto}
-    .listcol{width:100%;max-width:none;min-width:0;border-right:none;overflow:visible}
-    .mapcol{order:-1;height:300px;flex:none;border-bottom:1px solid var(--line)}
+    .listcol{width:100%;min-width:0;overflow:visible}
+    .mapcol{width:100%;max-width:none;border-left:none;border-top:1px solid var(--line);height:320px}
     header.top nav button{padding:7px 11px}
   }
 </style>
@@ -219,32 +275,65 @@
           <select class="field" id="regionSel"></select>
           <input class="field" id="regionFree" placeholder="自由輸入地區 / 車站名稱" style="display:none">
         </div>
+        <select class="field" id="districtSel" style="display:none;margin-top:8px;width:100%"></select>
+        <input class="field" id="areaInput" placeholder="區域（選填）例：三宮、難波、車站名…" style="display:none;margin-top:8px;width:100%">
       </div>
 
       <div class="grp">
-        <span class="lbl">店家類別（Places type）</span>
+        <span class="lbl">店家類別</span>
         <div class="seg" id="segType">
           <div class="chip on" data-v="restaurant">餐廳</div>
           <div class="chip" data-v="cafe">咖啡廳</div>
-          <div class="chip" data-v="bakery">烘焙</div>
+          <div class="chip" data-v="" data-kw="甜點">甜點店</div>
+          <div class="chip" data-v="bakery">麵包店</div>
           <div class="chip" data-v="convenience_store">便利商店</div>
           <div class="chip" data-v="supermarket">超市</div>
         </div>
       </div>
 
       <div class="grp">
-        <span class="lbl">餐廳類別（關鍵字）</span>
-        <div class="seg" id="segKw">
-          <div class="chip" data-v="火鍋">火鍋</div>
-          <div class="chip" data-v="燒肉">燒肉</div>
-          <div class="chip" data-v="拉麵">拉麵</div>
-          <div class="chip" data-v="壽司">壽司</div>
-          <div class="chip" data-v="韓式">韓式</div>
-          <div class="chip" data-v="義式">義式</div>
-          <div class="chip" data-v="早餐">早餐</div>
-          <div class="chip" data-v="小吃">小吃</div>
-          <div class="chip" data-v="甜點">甜點</div>
+        <span class="lbl">餐廳類別
+          <span id="kwSelected" class="kw-selected" style="display:none"></span>
+        </span>
+        <div class="accordion" id="kwAccordion">
+          <div class="acc-group">
+            <div class="acc-head" data-g="tw">台式・中式 <span class="acc-ar">▸</span></div>
+            <div class="acc-body">
+              <div class="chip kw-chip" data-v="熱炒">熱炒中式</div>
+              <div class="chip kw-chip" data-v="燒烤">燒烤</div>
+              <div class="chip kw-chip" data-v="港式飲茶">港式飲茶</div>
+            </div>
+          </div>
+          <div class="acc-group">
+            <div class="acc-head" data-g="jp">日式 <span class="acc-ar">▸</span></div>
+            <div class="acc-body">
+              <div class="chip kw-chip" data-v="拉麵">拉麵</div>
+              <div class="chip kw-chip" data-v="迴轉壽司">迴轉壽司</div>
+              <div class="chip kw-chip" data-v="居酒屋">居酒屋</div>
+              <div class="chip kw-chip" data-v="鐵板燒">鐵板燒</div>
+            </div>
+          </div>
+          <div class="acc-group">
+            <div class="acc-head" data-g="intl">異國料理 <span class="acc-ar">▸</span></div>
+            <div class="acc-body">
+              <div class="chip kw-chip" data-v="韓式">韓式</div>
+              <div class="chip kw-chip" data-v="義式美式">義式・美式</div>
+              <div class="chip kw-chip" data-v="牛排">牛排</div>
+              <div class="chip kw-chip" data-v="泰式">泰式</div>
+              <div class="chip kw-chip" data-v="越式">越式</div>
+              <div class="chip kw-chip" data-v="印度">印度</div>
+            </div>
+          </div>
+          <div class="acc-group">
+            <div class="acc-head" data-g="pot">鍋物 <span class="acc-ar">▸</span></div>
+            <div class="acc-body">
+              <div class="chip kw-chip" data-v="火鍋">火鍋</div>
+              <div class="chip kw-chip" data-v="麻辣鍋">麻辣鍋</div>
+              <div class="chip kw-chip" data-v="壽喜燒">壽喜燒</div>
+            </div>
+          </div>
         </div>
+        <input class="field kw-free" id="kwFree" placeholder="或自行輸入，例：飲品、丼飯、鹹酥雞…" style="margin-top:8px">
       </div>
 
       <button class="adv-toggle" id="advToggle">進階篩選 ▾</button>
@@ -280,12 +369,16 @@
       </div>
     </section>
 
-    <!-- ---- Split: list + map ---- -->
+    <!-- ---- Results: list primary, map optional ---- -->
+    <div class="result-bar">
+      <span id="resultCount">設定條件後按「搜尋美食」</span>
+      <button id="mapToggle">🗺 顯示地圖</button>
+    </div>
     <div class="split" id="splitView">
       <div class="listcol" id="listcol">
-        <div class="status" id="status">設定條件後按「搜尋美食」開始。</div>
+        <div class="status" id="status"></div>
       </div>
-      <div class="mapcol">
+      <div class="mapcol" id="mapcol">
         <div id="map"></div>
         <div class="map-warn" id="mapWarn">地圖載入中…若長時間空白，請確認已填入 Google API Key。</div>
       </div>
@@ -293,12 +386,16 @@
 
     <!-- ---- Favorites view ---- -->
     <div class="fav-view" id="favView">
-      <div class="fav-filter" id="favFilter">
-        <div class="chip on" data-v="all">全部</div>
-        <div class="chip" data-v="want">⭐ 想去</div>
-        <div class="chip" data-v="been">✅ 去過</div>
-        <div class="chip" data-v="pocket">📌 口袋名單</div>
+      <div class="fav-bar">
+        <div class="fav-filter" id="favFilter">
+          <div class="chip on" data-v="all">全部</div>
+          <div class="chip" data-v="want">⭐ 想去</div>
+          <div class="chip" data-v="been">✅ 去過</div>
+          <div class="chip" data-v="pocket">📌 口袋名單</div>
+        </div>
+        <button id="favMapToggle">🗺 地圖</button>
       </div>
+      <div id="favMapWrap"><div id="favMap"></div></div>
       <div id="favList"></div>
     </div>
   </main>
@@ -344,6 +441,19 @@ const REGIONS = {
        "難波","名古屋","札幌","福岡","橫濱","鳥取","米子","境港"]
 };
 
+// 台灣行政區（六都 + 基隆/新竹市/嘉義市做下拉，其餘縣市用打字）
+const TW_DISTRICTS = {
+  "台北市":["中正區","大同區","中山區","松山區","大安區","萬華區","信義區","士林區","北投區","內湖區","南港區","文山區"],
+  "新北市":["板橋區","三重區","中和區","永和區","新莊區","新店區","樹林區","鶯歌區","三峽區","淡水區","汐止區","瑞芳區","土城區","蘆洲區","五股區","泰山區","林口區","深坑區","石碇區","坪林區","三芝區","石門區","八里區","平溪區","雙溪區","貢寮區","金山區","萬里區","烏來區"],
+  "桃園市":["桃園區","中壢區","大溪區","楊梅區","蘆竹區","大園區","龜山區","八德區","龍潭區","平鎮區","新屋區","觀音區","復興區"],
+  "台中市":["中區","東區","南區","西區","北區","北屯區","西屯區","南屯區","太平區","大里區","霧峰區","烏日區","豐原區","后里區","石岡區","東勢區","和平區","新社區","潭子區","大雅區","神岡區","大肚區","沙鹿區","龍井區","梧棲區","清水區","大甲區","外埔區","大安區"],
+  "台南市":["中西區","東區","南區","北區","安平區","安南區","永康區","歸仁區","新化區","左鎮區","玉井區","楠西區","南化區","仁德區","關廟區","龍崎區","官田區","麻豆區","佳里區","西港區","七股區","將軍區","學甲區","北門區","新營區","後壁區","白河區","東山區","六甲區","下營區","柳營區","鹽水區","善化區","大內區","山上區","新市區","安定區"],
+  "高雄市":["楠梓區","左營區","鼓山區","三民區","鹽埕區","前金區","新興區","苓雅區","前鎮區","旗津區","小港區","鳳山區","大寮區","鳥松區","林園區","仁武區","大樹區","大社區","岡山區","路竹區","橋頭區","梓官區","彌陀區","永安區","燕巢區","田寮區","阿蓮區","茄萣區","湖內區","旗山區","美濃區","內門區","杉林區","甲仙區","六龜區","茂林區","桃源區","那瑪夏區"],
+  "基隆市":["中正區","七堵區","暖暖區","仁愛區","中山區","安樂區","信義區"],
+  "新竹市":["東區","北區","香山區"],
+  "嘉義市":["東區","西區"]
+};
+
 /* =====================================================================
    SearchEngine：集中管理所有搜尋邏輯（query 組裝 + type/keyword 組合 + 客戶端篩選）
    ===================================================================== */
@@ -352,13 +462,32 @@ const SearchEngine = {
   map: null,
   ready: false,
 
+  // 日文關鍵字對照（搜日本時自動換成日文，提高命中率）
+  JP_KW: {
+    "拉麵":"ラーメン","迴轉壽司":"回転寿司","居酒屋":"居酒屋","鐵板燒":"鉄板焼き",
+    "燒烤":"焼肉","熱炒":"中華料理","港式飲茶":"飲茶",
+    "韓式":"韓国料理","義式美式":"イタリアン","牛排":"ステーキ",
+    "泰式":"タイ料理","越式":"ベトナム料理","印度":"インド料理",
+    "火鍋":"火鍋","麻辣鍋":"麻辣火鍋","壽喜燒":"すき焼き","甜點":"スイーツ"
+  },
+
+  // 把關鍵字依國家轉換（日本→日文）
+  kwForCountry(kw, country){
+    if (!kw) return "";
+    if (country==="JP" && this.JP_KW[kw]) return this.JP_KW[kw];
+    return kw;
+  },
+
   // 由目前篩選狀態組出送往 Google 的查詢字串
   buildQuery(s){
     const parts = [];
     if (s.region) parts.push(s.region);
-    if (s.keyword) parts.push(s.keyword);
-    if (s.buffet) parts.push("吃到飽");
-    if (parts.length === 0) parts.push("美食");
+    if (s.area) parts.push(s.area);
+    const kw = this.kwForCountry(s.keyword, s.country);
+    if (kw) parts.push(kw);
+    if (s.typeKw) parts.push(this.kwForCountry(s.typeKw, s.country)); // 甜點店
+    if (s.buffet) parts.push(s.country==="JP" ? "食べ放題" : "吃到飽");
+    if (parts.length === 0) parts.push(s.country==="JP" ? "グルメ" : "美食");
     return parts.join(" ");
   },
 
@@ -373,10 +502,8 @@ const SearchEngine = {
 
   // 組出 textSearch 請求（type + keyword 組合）
   buildRequest(s){
-    const req = {
-      query: this.buildQuery(s),
-      type: s.type || "restaurant"
-    };
+    const req = { query: this.buildQuery(s) };
+    if (s.type) req.type = s.type;   // 甜點店 type 為空，靠關鍵字搜
     if (s.openNow) req.openNow = true;
     const pr = this.priceRange(s.price);
     if (pr){ req.minPrice = pr.min; req.maxPrice = pr.max; }
@@ -401,22 +528,42 @@ const SearchEngine = {
     });
   },
 
-  // 執行搜尋
+  // 執行搜尋（第一頁）
   run(state){
+    this._state = state;
     return new Promise((resolve, reject)=>{
       if (!this.ready || !this.service){ reject("MAPS_NOT_READY"); return; }
-      const req = this.buildRequest(state);
-      this.service.textSearch(req, (results, status)=>{
+      let done = false;
+      const timer = setTimeout(()=>{ if(!done){ done=true; reject("TIMEOUT"); } }, 9000);
+      this._pageHandler = (results, status, pagination)=>{
+        if (done) return; done=true; clearTimeout(timer);
+        this.pagination = pagination || null;
         const OK = google.maps.places.PlacesServiceStatus.OK;
         const ZERO = google.maps.places.PlacesServiceStatus.ZERO_RESULTS;
-        if (status === OK && results){
-          resolve(this.applyClientFilters(results, state));
-        } else if (status === ZERO){
-          resolve([]);
-        } else {
-          reject(status);
-        }
-      });
+        if (status === OK && results){ resolve(this.applyClientFilters(results, this._state)); }
+        else if (status === ZERO){ resolve([]); }
+        else { reject(status); }
+      };
+      this.service.textSearch(this.buildRequest(state), (r,s,p)=>{ if(this._pageHandler) this._pageHandler(r,s,p); });
+    });
+  },
+
+  // 載入更多（下一頁）
+  more(){
+    return new Promise((resolve, reject)=>{
+      if (!this.pagination || !this.pagination.hasNextPage){ resolve([]); return; }
+      let done = false;
+      const timer = setTimeout(()=>{ if(!done){ done=true; reject("TIMEOUT"); } }, 9000);
+      this._pageHandler = (results, status, pagination)=>{
+        if (done) return; done=true; clearTimeout(timer);
+        this.pagination = pagination || null;
+        const OK = google.maps.places.PlacesServiceStatus.OK;
+        const ZERO = google.maps.places.PlacesServiceStatus.ZERO_RESULTS;
+        if (status === OK && results){ resolve(this.applyClientFilters(results, this._state)); }
+        else if (status === ZERO){ resolve([]); }
+        else { reject(status); }
+      };
+      this.pagination.nextPage();
     });
   },
 
@@ -424,19 +571,24 @@ const SearchEngine = {
   runNearby(state, center, radius){
     return new Promise((resolve, reject)=>{
       if (!this.ready || !this.service){ reject("MAPS_NOT_READY"); return; }
+      let done = false;
+      const timer = setTimeout(()=>{ if(!done){ done=true; reject("TIMEOUT"); } }, 9000);
       const req = {
         location: center,
-        radius: radius || 1500,
-        type: state.type || "restaurant"
+        radius: radius || 1500
       };
+      if (state.type) req.type = state.type;   // 甜點店 type 空，用關鍵字
       const kw = [];
-      if (state.keyword) kw.push(state.keyword);
-      if (state.buffet) kw.push("吃到飽");
+      const k = this.kwForCountry(state.keyword, state.country);
+      if (k) kw.push(k);
+      if (state.typeKw) kw.push(this.kwForCountry(state.typeKw, state.country));
+      if (state.buffet) kw.push(state.country==="JP" ? "食べ放題" : "吃到飽");
       if (kw.length) req.keyword = kw.join(" ");
       if (state.openNow) req.openNow = true;
       const pr = this.priceRange(state.price);
       if (pr){ req.minPrice = pr.min; req.maxPrice = pr.max; }
       this.service.nearbySearch(req, (results, status)=>{
+        if (done) return; done=true; clearTimeout(timer);
         const OK = google.maps.places.PlacesServiceStatus.OK;
         const ZERO = google.maps.places.PlacesServiceStatus.ZERO_RESULTS;
         if (status === OK && results) resolve(this.applyClientFilters(results, state));
@@ -512,6 +664,7 @@ const FavStore = {
       address: place.formatted_address || place.vicinity || "",
       rating: place.rating != null ? place.rating : null,
       priceLevel: place.price_level != null ? place.price_level : null,
+      reviewCount: place.user_ratings_total != null ? place.user_ratings_total : null,
       lat: loc ? loc.lat() : null,
       lng: loc ? loc.lng() : null,
       category: category,                 // want / been / pocket
@@ -557,7 +710,7 @@ const FavStore = {
    App state + UI
    ===================================================================== */
 const state = {
-  country:"TW", region:"", type:"restaurant", keyword:"",
+  country:"TW", region:"", area:"", type:"restaurant", typeKw:"", keyword:"",
   price:"", minStar:"", openNow:false, buffet:false
 };
 let markers = [];
@@ -619,12 +772,63 @@ function toggleSingleChip(box, cb){
 }
 
 singleChip($("#segCountry"), v=>{ state.country=v; buildRegionOptions(); });
-singleChip($("#segType"), v=>{ state.type=v; });
-toggleSingleChip($("#segKw"), v=>{ state.keyword=v; });
+singleChip($("#segType"), function(v){
+  // 甜點店無對應 Google type，改用關鍵字「甜點」
+  const chip = $("#segType .chip.on");
+  state.type = v;
+  state.typeKw = (chip && chip.dataset.kw) ? chip.dataset.kw : "";
+});
 toggleSingleChip($("#segPrice"), v=>{ state.price=v; });
 toggleSingleChip($("#segStar"), v=>{ state.minStar=v; });
 $("#chipOpen").addEventListener("click", function(){ this.classList.toggle("on"); state.openNow=this.classList.contains("on"); });
 $("#chipBuffet").addEventListener("click", function(){ this.classList.toggle("on"); state.buffet=this.classList.contains("on"); });
+
+/* ---------- 餐廳類別：手風琴 + 單選 + 自行輸入 ---------- */
+// 大項展開／收合（一次開一個）
+$("#kwAccordion").querySelectorAll(".acc-head").forEach(h=>{
+  h.addEventListener("click", ()=>{
+    const grp = h.parentElement;
+    const wasOpen = grp.classList.contains("open");
+    $("#kwAccordion").querySelectorAll(".acc-group").forEach(g=>g.classList.remove("open"));
+    if (!wasOpen) grp.classList.add("open");
+  });
+});
+// 小項單選（跨群唯一）
+function setKeyword(v, label){
+  $("#kwAccordion").querySelectorAll(".kw-chip").forEach(c=>{
+    c.classList.toggle("on", c.dataset.v===v && v!=="");
+  });
+  state.keyword = v;
+  const tag = $("#kwSelected");
+  if (v){
+    $("#kwFree").value = "";   // 點按鈕就清掉自行輸入
+    tag.style.display="inline-block";
+    tag.innerHTML = "已選："+esc(label)+'<span class="x">✕</span>';
+  } else {
+    tag.style.display="none";
+  }
+}
+$("#kwAccordion").querySelectorAll(".kw-chip").forEach(c=>{
+  c.addEventListener("click", ()=>{
+    if (c.classList.contains("on")) setKeyword("", "");      // 再點一次取消
+    else setKeyword(c.dataset.v, c.textContent.trim());
+  });
+});
+// 點「已選 ✕」清除
+$("#kwSelected").addEventListener("click", e=>{
+  if (e.target.classList.contains("x")) setKeyword("", "");
+});
+// 自行輸入：有打字就清掉按鈕選擇，並以輸入為準
+$("#kwFree").addEventListener("input", function(){
+  const t=this.value.trim();
+  if (t){
+    $("#kwAccordion").querySelectorAll(".kw-chip").forEach(c=>c.classList.remove("on"));
+    $("#kwSelected").style.display="none";
+    state.keyword = t;
+  } else {
+    state.keyword = "";
+  }
+});
 
 $("#advToggle").addEventListener("click", function(){
   const box=$("#advBox"); box.classList.toggle("show");
@@ -638,6 +842,7 @@ function buildRegionOptions(){
     sel.style.display="none"; free.style.display="block";
     lbl.textContent="地區（自由輸入）";
     state.region = free.value.trim();
+    updateAreaUI();
     return;
   }
   sel.style.display="block"; free.style.display="none";
@@ -646,9 +851,32 @@ function buildRegionOptions(){
   sel.innerHTML = '<option value="">不限地區</option>' +
     list.map(r=>`<option value="${r}">${r}</option>`).join("");
   state.region = "";
+  updateAreaUI();
 }
-$("#regionSel").addEventListener("change", e=>{ state.region=e.target.value; });
+
+// 依國家＋縣市決定：台灣有資料→區域下拉；其餘→區域打字
+function updateAreaUI(){
+  const dsel=$("#districtSel"), area=$("#areaInput");
+  state.area = "";
+  const hasDistricts = state.country==="TW" && TW_DISTRICTS[state.region];
+  if (hasDistricts){
+    area.style.display="none"; area.value="";
+    dsel.style.display="block";
+    dsel.innerHTML = '<option value="">全區（不限）</option>' +
+      TW_DISTRICTS[state.region].map(d=>`<option value="${d}">${d}</option>`).join("");
+  } else {
+    dsel.style.display="none"; dsel.innerHTML="";
+    area.style.display="block"; area.value="";
+    area.placeholder = state.country==="JP"
+      ? "區域（選填）例：三宮、難波、車站、地標"
+      : "區域（選填）例：路名、地標、商圈";
+  }
+}
+
+$("#regionSel").addEventListener("change", e=>{ state.region=e.target.value; updateAreaUI(); });
 $("#regionFree").addEventListener("input", e=>{ state.region=e.target.value.trim(); });
+$("#districtSel").addEventListener("change", e=>{ state.area=e.target.value; });
+$("#areaInput").addEventListener("input", e=>{ state.area=e.target.value.trim(); });
 
 /* ---------- 導覽切換 ---------- */
 function switchView(view){
@@ -675,6 +903,21 @@ function initMap(){
 }
 window.initMap = initMap;
 
+/* ---------- 地圖顯示／收起 ---------- */
+$("#mapToggle").addEventListener("click", ()=>{
+  const sv=$("#splitView"), btn=$("#mapToggle");
+  const on = sv.classList.toggle("map-on");
+  btn.classList.toggle("on", on);
+  btn.textContent = on ? "🗺 隱藏地圖" : "🗺 顯示地圖";
+  if (on && SearchEngine.map){
+    // 由隱藏轉顯示，需重算地圖尺寸並重新對焦
+    setTimeout(()=>{
+      google.maps.event.trigger(SearchEngine.map, "resize");
+      if (markers.length) fitMarkers(); else SearchEngine.map.setCenter({lat:23.7,lng:121});
+    }, 60);
+  }
+});
+
 /* ---------- 載入 Maps script ---------- */
 (function loadMaps(){
   if (!CONFIG.GOOGLE_API_KEY || CONFIG.GOOGLE_API_KEY==="YOUR_GOOGLE_API_KEY"){
@@ -690,33 +933,48 @@ window.initMap = initMap;
 
 /* ---------- 執行搜尋 ---------- */
 $("#searchBtn").addEventListener("click", doSearch);
+function searchErrMsg(err){
+  const map = {
+    "MAPS_NOT_READY":"地圖尚未就緒，請確認 API Key。",
+    "TIMEOUT":"搜尋逾時（9 秒沒回應）。多半是網路慢，或 Places API 沒正確啟用／金鑰未授權此網域。",
+    "REQUEST_DENIED":"REQUEST_DENIED：Places API 被拒。請確認『Places API』已啟用、金鑰網域含本網址、且已綁定帳單。",
+    "OVER_QUERY_LIMIT":"用量超出限制或帳單未啟用。",
+    "INVALID_REQUEST":"查詢條件無效，請換個條件。",
+    "UNKNOWN_ERROR":"Google 伺服器暫時錯誤，請再按一次。"
+  };
+  return map[err] || ("搜尋發生問題（"+err+"）。");
+}
 async function doSearch(){
   if (!SearchEngine.ready){
     toast("地圖尚未就緒，請先設定 API Key");
     return;
   }
   const btn=$("#searchBtn"); btn.disabled=true; btn.textContent="搜尋中…";
-  $("#status").textContent="搜尋中…"; $("#status").style.display="block";
-  clearMarkers();
+  setBar("搜尋中…"); setStatus("搜尋中…");
+  clearMarkers(); SearchEngine.pagination=null;
   try{
     const results = await SearchEngine.run(state);
-    lastResults = results;
     renderResults(results);
   }catch(err){
-    $("#status").textContent = err==="MAPS_NOT_READY"
-      ? "地圖尚未就緒，請設定 API Key。" : "搜尋發生問題（"+err+"），請調整條件再試。";
+    setBar("搜尋失敗"); setStatus('<b style="color:var(--accent-d)">⚠ '+esc(searchErrMsg(err))+'</b>');
   }finally{
     btn.disabled=false; btn.textContent="🔍 搜尋美食";
   }
 }
+
+/* 狀態訊息：寫進列表區（會被結果覆蓋，故每次重建） */
+function setStatus(html){ const c=$("#listcol"); if(c) c.innerHTML='<div class="status">'+html+'</div>'; }
+function setBar(text){ const b=$("#resultCount"); if(b) b.textContent=text; }
 
 /* ---------- 附近搜尋（手機定位） ---------- */
 $("#nearBtn").addEventListener("click", doNearby);
 function doNearby(){
   if (!SearchEngine.ready){ toast("地圖尚未就緒，請先設定 API Key"); return; }
   if (!navigator.geolocation){ toast("此瀏覽器不支援定位"); return; }
+  // 附近搜尋會用到地圖標位，自動展開地圖
+  if (!$("#splitView").classList.contains("map-on")) $("#mapToggle").click();
   const btn=$("#nearBtn"); btn.disabled=true; btn.textContent="定位中…";
-  $("#status").textContent="正在取得你的位置…"; $("#status").style.display="block";
+  setBar("定位中…"); setStatus("正在取得你的位置…");
   navigator.geolocation.getCurrentPosition(async pos=>{
     const center={lat:pos.coords.latitude, lng:pos.coords.longitude};
     clearMarkers();
@@ -727,13 +985,13 @@ function doNearby(){
       });
       SearchEngine.map.panTo(center); SearchEngine.map.setZoom(15);
     }
-    $("#status").textContent="搜尋你附近…";
+    setStatus("搜尋你附近…");
     try{
+      SearchEngine.pagination=null;
       const results = await SearchEngine.runNearby(state, center, 1500);
-      lastResults = results;
-      renderResults(results, true);
+      renderResults(results);
     }catch(err){
-      $("#status").textContent="附近搜尋發生問題（"+err+"），請調整條件再試。";
+      setBar("搜尋失敗"); setStatus('<b style="color:var(--accent-d)">⚠ '+esc(searchErrMsg(err))+'</b>');
     }finally{
       btn.disabled=false; btn.textContent="📍 我附近";
     }
@@ -742,7 +1000,7 @@ function doNearby(){
     const msg = err.code===1 ? "你拒絕了定位權限，請到瀏覽器設定開啟。"
       : err.code===2 ? "目前無法取得位置，請確認定位已開啟。"
       : "定位逾時，請再試一次。";
-    $("#status").textContent=msg; toast("定位失敗");
+    setBar("定位失敗"); setStatus(esc(msg)); toast("定位失敗");
   }, {enableHighAccuracy:true, timeout:10000, maximumAge:0});
 }
 function priceText(lv){
@@ -760,21 +1018,30 @@ function openText(p){
   return "";
 }
 
-function renderResults(list){
+function renderResults(list, append){
   const col=$("#listcol");
-  if (!list.length){
-    col.innerHTML='<div class="status">找不到符合條件的店家，試著放寬篩選或更換地區。</div>';
-    return;
+  const bar=$("#resultCount");
+  removeLoadMore();
+  if (!append){
+    lastResults = [];
+    col.innerHTML="";
+    if (!list.length){
+      bar.textContent="沒有結果";
+      col.innerHTML='<div class="status">找不到符合條件的店家，試著放寬篩選或更換地區。</div>';
+      return;
+    }
   }
-  col.innerHTML='<div class="status">共 '+list.length+' 間店家</div>';
+  lastResults = lastResults.concat(list);
+  bar.textContent="共 "+lastResults.length+" 間店家";
   list.forEach(p=>{
+    const rc = p.user_ratings_total;
     const card=document.createElement("div");
     card.className="card";
     card.innerHTML = `
       <div class="head">
         <div class="nm">${esc(p.name||"")}
           <div class="meta">
-            ${p.rating!=null?'<span class="rate">★ '+p.rating.toFixed(1)+'</span>':''}
+            ${p.rating!=null?'<span class="rate">★ '+p.rating.toFixed(1)+(rc?' ('+rc.toLocaleString()+')':'')+'</span>':''}
             <span class="price">${priceText(p.price_level)}</span>
             ${openText(p)}
           </div>
@@ -796,7 +1063,30 @@ function renderResults(list){
     addMarker(p);
     refreshFavButtons(card, p.place_id);
   });
-  fitMarkers();
+  if ($("#splitView").classList.contains("map-on")) fitMarkers();
+  updateLoadMore();
+}
+
+/* ---------- 載入更多 ---------- */
+function removeLoadMore(){ const e=$("#loadMoreBtn"); if(e) e.remove(); }
+function updateLoadMore(){
+  removeLoadMore();
+  if (SearchEngine.pagination && SearchEngine.pagination.hasNextPage){
+    const b=document.createElement("button");
+    b.id="loadMoreBtn"; b.className="load-more"; b.textContent="載入更多";
+    b.addEventListener("click", loadMore);
+    $("#listcol").appendChild(b);
+  }
+}
+async function loadMore(){
+  const b=$("#loadMoreBtn"); if(!b) return;
+  b.disabled=true; b.textContent="載入中…";
+  try{
+    const more = await SearchEngine.more();
+    renderResults(more, true);
+  }catch(err){
+    if ($("#loadMoreBtn")){ $("#loadMoreBtn").disabled=false; $("#loadMoreBtn").textContent="載入更多（再試一次）"; }
+  }
 }
 
 function favBtn(id, cat, label){
@@ -819,6 +1109,7 @@ async function onFav(place, cat, card){
     // 補抓詳細以存入完整資料
     let full = place;
     try { full = await SearchEngine.details(place.place_id); } catch(e){}
+    if (full.user_ratings_total == null) full.user_ratings_total = place.user_ratings_total;
     FavStore.set(full, cat, state);
     toast(cat==="want"?"已加入 ⭐ 想去":cat==="been"?"已標記 ✅ 去過":"已加入 📌 口袋名單");
   }
@@ -841,9 +1132,22 @@ async function toggleDetail(p, box, head){
     const nav = d.geometry
       ? `https://www.google.com/maps/dir/?api=1&destination=${d.geometry.location.lat()},${d.geometry.location.lng()}&destination_place_id=${d.place_id}`
       : (d.url||"#");
+    let hoursHtml="";
+    const oh=d.opening_hours;
+    if (oh && oh.weekday_text && oh.weekday_text.length){
+      const idx=(new Date().getDay()+6)%7;   // weekday_text 週一起算
+      const today=oh.weekday_text[idx]||"";
+      const isOpen=(typeof oh.isOpen==="function")?oh.isOpen():oh.open_now;
+      const tag=isOpen===true?'<span class="open">營業中</span>':isOpen===false?'<span class="closed">休息中</span>':'';
+      const week=oh.weekday_text.map(t=>esc(t)).join("<br>");
+      hoursHtml=`
+        <div class="drow"><b>營業</b><span>${esc(today)} ${tag}</span></div>
+        <details class="hours-week"><summary>查看每日營業時間</summary><div>${week}</div></details>`;
+    }
     box.innerHTML = `
       <div class="drow"><b>地址</b><span>${esc(d.formatted_address||"—")}</span></div>
       ${d.formatted_phone_number?`<div class="drow"><b>電話</b><a href="tel:${d.formatted_phone_number}">${d.formatted_phone_number}</a></div>`:""}
+      ${hoursHtml}
       ${d.website?`<div class="drow"><b>官網</b><a href="${d.website}" target="_blank" rel="noopener">${d.website}</a></div>`:""}
       <div class="acts">
         <a href="${nav}" target="_blank" rel="noopener">🧭 導航</a>
@@ -888,8 +1192,46 @@ $("#favFilter").querySelectorAll(".chip").forEach(c=>{
   c.addEventListener("click", ()=>{
     $("#favFilter").querySelectorAll(".chip").forEach(x=>x.classList.remove("on"));
     c.classList.add("on"); favFilter=c.dataset.v; renderFavList();
+    if ($("#favMapWrap").classList.contains("show")) plotFavMap();
   });
 });
+
+/* ---------- 收藏地圖檢視 ---------- */
+let favMap=null, favMarkers=[];
+$("#favMapToggle").addEventListener("click", function(){
+  const on = $("#favMapWrap").classList.toggle("show");
+  this.classList.toggle("on", on);
+  if (on) plotFavMap();
+});
+function plotFavMap(){
+  if (!SearchEngine.ready || !window.google){ toast("地圖尚未就緒"); return; }
+  if (!favMap){
+    favMap = new google.maps.Map($("#favMap"), {
+      center:{lat:23.7,lng:121}, zoom:7,
+      mapTypeControl:false, streetViewControl:false, fullscreenControl:false
+    });
+  }
+  favMarkers.forEach(m=>m.setMap(null)); favMarkers=[];
+  let items = FavStore.all();
+  if (favFilter!=="all") items=items.filter(i=>i.category===favFilter);
+  const icons={want:"#E2603B",been:"#3F8A5C",pocket:"#5B6B7C"};
+  const bounds=new google.maps.LatLngBounds();
+  setTimeout(()=>google.maps.event.trigger(favMap,"resize"), 60);
+  items.forEach(it=>{
+    if (it.lat==null) return;
+    const pos={lat:it.lat,lng:it.lng};
+    const m=new google.maps.Marker({
+      map:favMap, position:pos, title:it.name,
+      icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,
+        fillColor:icons[it.category]||"#E2603B",fillOpacity:1,strokeColor:"#fff",strokeWeight:2}
+    });
+    const info=new google.maps.InfoWindow({content:`<strong>${esc(it.name)}</strong><br>${PILL[it.category][1]}`});
+    m.addListener("click", ()=>info.open(favMap,m));
+    favMarkers.push(m); bounds.extend(pos);
+  });
+  if (favMarkers.length){ favMap.fitBounds(bounds); if(favMarkers.length===1) setTimeout(()=>favMap.setZoom(16),80); }
+}
+
 const PILL = {want:["want","⭐ 想去"], been:["been","✅ 去過"], pocket:["pocket","📌 口袋名單"]};
 function renderFavList(){
   const wrap=$("#favList");
@@ -910,7 +1252,7 @@ function renderFavList(){
       <div class="head" style="cursor:default">
         <div class="nm">${esc(it.name)}
           <div class="meta">
-            ${it.rating!=null?'<span class="rate">★ '+it.rating.toFixed(1)+'</span>':''}
+            ${it.rating!=null?'<span class="rate">★ '+it.rating.toFixed(1)+(it.reviewCount?' ('+it.reviewCount.toLocaleString()+')':'')+'</span>':''}
             <span class="price">${priceText(it.priceLevel)}</span>
             <span class="pill ${PILL[it.category][0]}">${PILL[it.category][1]}</span>
           </div>
