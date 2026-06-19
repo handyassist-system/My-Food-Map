@@ -97,6 +97,9 @@
     display:none;flex-wrap:wrap;gap:8px;padding:0 14px 14px;
   }
   .acc-group.open .acc-body{display:flex}
+  .accordion.locked{opacity:.45}
+  .accordion.locked .acc-head{cursor:not-allowed}
+  .kw-free:disabled{background:#F1ECE3;color:#aaa}
   .kw-free{width:100%}
   .field{
     flex:1;min-width:150px;padding:10px 12px;border:1px solid var(--line);
@@ -484,63 +487,67 @@ const SearchEngine = {
     convenience_store:"便利商店", supermarket:"超市"
   },
 
-  // 由目前篩選狀態組出送往 Google 的查詢字串
-  buildQuery(s){
+  // 由目前篩選狀態 + 單一關鍵字 組出查詢字串
+  buildQuery(s, kw){
     const parts = [];
     if (s.region) parts.push(s.region);
     if (s.area) parts.push(s.area);
-    const kw = this.kwForCountry(s.keyword, s.country);
-    if (kw) parts.push(kw);
+    const k = this.kwForCountry(kw||"", s.country);
+    if (k) parts.push(k);
     if (s.typeKw) parts.push(this.kwForCountry(s.typeKw, s.country)); // 甜點店
     if (s.buffet) parts.push(s.country==="JP" ? "食べ放題" : "吃到飽");
-    // 沒有任何菜系關鍵字時，補一個主詞（依店家類別），否則 Google 只當成地點查不到店
-    if (!kw && !s.typeKw && !s.buffet){
+    // 沒有關鍵字時，補一個主詞（依店家類別）
+    if (!k && !s.typeKw && !s.buffet){
       parts.push(this.TYPE_WORD[s.type] || (s.country==="JP" ? "グルメ" : "美食"));
     }
     if (parts.length === 0) parts.push(s.country==="JP" ? "グルメ" : "美食");
     return parts.join(" ");
   },
 
-  // 價位分級對應 Google price_level（0–4）
-  // 平價 low: 0–1 / 中等 mid: 2 / 高價 high: 3–4
-  priceRange(bucket){
+  // 單一價位分級對應 Google price_level（0–4）
+  priceBucket(bucket){
     if (bucket==="low")  return {min:0, max:1};
     if (bucket==="mid")  return {min:2, max:2};
     if (bucket==="high") return {min:3, max:4};
     return null;
   },
+  // 多選價位 → 給 Google 的 min/max 範圍（取最小min、最大max；中間可能多含，靠客戶端精修）
+  priceSpan(prices){
+    if (!prices || !prices.length) return null;
+    let min=99, max=-1;
+    prices.forEach(b=>{ const r=this.priceBucket(b); if(r){ min=Math.min(min,r.min); max=Math.max(max,r.max);} });
+    return max<0 ? null : {min, max};
+  },
+  // 判斷某 price_level 是否屬於選取的價位桶
+  priceMatches(level, prices){
+    if (!prices || !prices.length) return true;
+    return prices.some(b=>{ const r=this.priceBucket(b); return r && level>=r.min && level<=r.max; });
+  },
 
-  // 組出 textSearch 請求（type + keyword 組合）
-  buildRequest(s){
-    const req = { query: this.buildQuery(s) };
+  // 組出 textSearch 請求（單一關鍵字）
+  buildRequest(s, kw){
+    const req = { query: this.buildQuery(s, kw) };
     if (s.type) req.type = s.type;   // 甜點店 type 為空，靠關鍵字搜
     if (s.openNow) req.openNow = true;
-    const pr = this.priceRange(s.price);
-    if (pr){ req.minPrice = pr.min; req.maxPrice = pr.max; }
+    const sp = this.priceSpan(s.prices);
+    if (sp){ req.minPrice = sp.min; req.maxPrice = sp.max; }
     return req;
   },
 
-  // Google 回傳後的客戶端二次篩選（星級、價位區間、吃到飽字樣）
+  // 客戶端二次篩選（星級、價位精修）
   applyClientFilters(results, s){
-    const pr = this.priceRange(s.price);
     return results.filter(p=>{
       if (s.minStar && (p.rating||0) < Number(s.minStar)) return false;
-      if (pr && p.price_level != null){
-        if (p.price_level < pr.min || p.price_level > pr.max) return false;
-      }
-      if (s.buffet){
-        const t = ((p.name||"") + " " + (p.formatted_address||p.vicinity||"")).toLowerCase();
-        if (!/吃到飽|食べ放題|all you can eat|buffet|バイキング/i.test(t)) {
-          // 允許名稱含相關字；若 Google 已用 query 過濾仍保留
-        }
+      if (s.prices && s.prices.length && p.price_level != null){
+        if (!this.priceMatches(p.price_level, s.prices)) return false;
       }
       return true;
     });
   },
 
-  // 執行搜尋（第一頁）
-  run(state){
-    this._state = state;
+  // 執行搜尋（第一頁，單一關鍵字）
+  run(state, kw){
+    this._state = state; this._kw = kw||"";
     return new Promise((resolve, reject)=>{
       if (!this.ready || !this.service){ reject("MAPS_NOT_READY"); return; }
       let done = false;
@@ -554,7 +561,22 @@ const SearchEngine = {
         else if (status === ZERO){ resolve([]); }
         else { reject(status); }
       };
-      this.service.textSearch(this.buildRequest(state), (r,s,p)=>{ if(this._pageHandler) this._pageHandler(r,s,p); });
+      this.service.textSearch(this.buildRequest(state, kw), (r,s,p)=>{ if(this._pageHandler) this._pageHandler(r,s,p); });
+    });
+  },
+
+  // 多關鍵字：各搜一次（第一頁）→ 合併去重。多選時不分頁，pagination 設 null
+  searchMulti(state, keywords){
+    return new Promise(async (resolve, reject)=>{
+      const seen={}, merged=[];
+      try{
+        for (let i=0;i<keywords.length;i++){
+          const list = await this.run(state, keywords[i]);  // 各取第一頁
+          list.forEach(p=>{ if(!seen[p.place_id]){ seen[p.place_id]=1; merged.push(p); } });
+        }
+        this.pagination = null;        // 多來源合併，不再提供 Google 分頁
+        resolve(merged);
+      }catch(e){ reject(e); }
     });
   },
 
@@ -589,14 +611,14 @@ const SearchEngine = {
       };
       if (state.type) req.type = state.type;   // 甜點店 type 空，用關鍵字
       const kw = [];
-      const k = this.kwForCountry(state.keyword, state.country);
-      if (k) kw.push(k);
+      const eff = (state.freeKw ? [state.freeKw] : state.cats);
+      eff.forEach(c=>{ const k=this.kwForCountry(c, state.country); if(k) kw.push(k); });
       if (state.typeKw) kw.push(this.kwForCountry(state.typeKw, state.country));
       if (state.buffet) kw.push(state.country==="JP" ? "食べ放題" : "吃到飽");
       if (kw.length) req.keyword = kw.join(" ");
       if (state.openNow) req.openNow = true;
-      const pr = this.priceRange(state.price);
-      if (pr){ req.minPrice = pr.min; req.maxPrice = pr.max; }
+      const sp = this.priceSpan(state.prices);
+      if (sp){ req.minPrice = sp.min; req.maxPrice = sp.max; }
       this.service.nearbySearch(req, (results, status)=>{
         if (done) return; done=true; clearTimeout(timer);
         const OK = google.maps.places.PlacesServiceStatus.OK;
@@ -720,11 +742,23 @@ const FavStore = {
    App state + UI
    ===================================================================== */
 const state = {
-  country:"TW", region:"", area:"", type:"restaurant", typeKw:"", keyword:"",
-  price:"", minStar:"", openNow:false, buffet:false
+  country:"TW", region:"", area:"", type:"restaurant", typeKw:"",
+  cats:[], freeKw:"",        // 餐廳類別（複選，最多3）/ 自行輸入
+  prices:[], minStar:"", openNow:false, buffet:false
 };
+const MAX_CATS = 3;
+// 實際要搜的關鍵字陣列：有自行輸入就只用輸入；否則用複選的類別
+function effectiveKeywords(){
+  if (state.freeKw) return [state.freeKw];
+  return state.cats.slice();
+}
 let markers = [];
 let lastResults = [];
+let resultBuffer = [];      // 已抓回的全部結果（含尚未顯示的）
+let shownCount = 0;         // 目前已顯示幾筆
+const FIRST_SHOW = 30;      // 首次顯示目標筆數
+const MORE_STEP = 20;       // 「載入更多」每次再顯示
+function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
 
 const $ = sel => document.querySelector(sel);
 
@@ -787,56 +821,87 @@ singleChip($("#segType"), function(v){
   const chip = $("#segType .chip.on");
   state.type = v;
   state.typeKw = (chip && chip.dataset.kw) ? chip.dataset.kw : "";
+  // 店家類別不是「餐廳」時，鎖住餐廳類別（避免「咖啡廳找火鍋」打架）
+  lockCategory(v !== "restaurant");
 });
-toggleSingleChip($("#segPrice"), v=>{ state.price=v; });
+
+// 鎖住／解鎖餐廳類別
+function lockCategory(locked){
+  const acc=$("#kwAccordion"), free=$("#kwFree");
+  acc.classList.toggle("locked", locked);
+  free.disabled = locked;
+  if (locked){
+    // 清空已選的類別
+    state.cats=[]; state.freeKw=""; free.value="";
+    acc.querySelectorAll(".kw-chip").forEach(c=>c.classList.remove("on"));
+    acc.querySelectorAll(".acc-group").forEach(g=>g.classList.remove("open"));
+    renderCatTag();
+  }
+}
+
+// 價位複選
+$("#segPrice").querySelectorAll(".chip").forEach(c=>{
+  c.addEventListener("click", ()=>{
+    c.classList.toggle("on");
+    state.prices = Array.from($("#segPrice").querySelectorAll(".chip.on")).map(x=>x.dataset.v);
+  });
+});
 toggleSingleChip($("#segStar"), v=>{ state.minStar=v; });
 $("#chipOpen").addEventListener("click", function(){ this.classList.toggle("on"); state.openNow=this.classList.contains("on"); });
 $("#chipBuffet").addEventListener("click", function(){ this.classList.toggle("on"); state.buffet=this.classList.contains("on"); });
 
-/* ---------- 餐廳類別：手風琴 + 單選 + 自行輸入 ---------- */
+/* ---------- 餐廳類別：手風琴 + 複選(最多3) + 自行輸入 ---------- */
 // 大項展開／收合（一次開一個）
 $("#kwAccordion").querySelectorAll(".acc-head").forEach(h=>{
   h.addEventListener("click", ()=>{
+    if ($("#kwAccordion").classList.contains("locked")) return;
     const grp = h.parentElement;
     const wasOpen = grp.classList.contains("open");
     $("#kwAccordion").querySelectorAll(".acc-group").forEach(g=>g.classList.remove("open"));
     if (!wasOpen) grp.classList.add("open");
   });
 });
-// 小項單選（跨群唯一）
-function setKeyword(v, label){
-  $("#kwAccordion").querySelectorAll(".kw-chip").forEach(c=>{
-    c.classList.toggle("on", c.dataset.v===v && v!=="");
-  });
-  state.keyword = v;
-  const tag = $("#kwSelected");
-  if (v){
-    $("#kwFree").value = "";   // 點按鈕就清掉自行輸入
+// 顯示「已選」標籤
+function renderCatTag(){
+  const tag=$("#kwSelected");
+  if (state.cats.length){
     tag.style.display="inline-block";
-    tag.innerHTML = "已選："+esc(label)+'<span class="x">✕</span>';
-  } else {
-    tag.style.display="none";
-  }
+    tag.innerHTML = "已選："+esc(state.cats.join("、"))+'<span class="x">✕</span>';
+  } else tag.style.display="none";
 }
+// 小項複選（跨群，最多 MAX_CATS）
 $("#kwAccordion").querySelectorAll(".kw-chip").forEach(c=>{
   c.addEventListener("click", ()=>{
-    if (c.classList.contains("on")) setKeyword("", "");      // 再點一次取消
-    else setKeyword(c.dataset.v, c.textContent.trim());
+    if ($("#kwAccordion").classList.contains("locked")) return;
+    const v=c.dataset.v;
+    const i=state.cats.indexOf(v);
+    if (i>=0){ state.cats.splice(i,1); c.classList.remove("on"); }
+    else {
+      if (state.cats.length>=MAX_CATS){ toast("最多選 "+MAX_CATS+" 個類別"); return; }
+      state.cats.push(v); c.classList.add("on");
+      $("#kwFree").value=""; state.freeKw="";   // 選按鈕就清掉自行輸入
+    }
+    renderCatTag();
   });
 });
-// 點「已選 ✕」清除
+// 點「已選 ✕」全部清除
 $("#kwSelected").addEventListener("click", e=>{
-  if (e.target.classList.contains("x")) setKeyword("", "");
+  if (e.target.classList.contains("x")){
+    state.cats=[];
+    $("#kwAccordion").querySelectorAll(".kw-chip").forEach(c=>c.classList.remove("on"));
+    renderCatTag();
+  }
 });
 // 自行輸入：有打字就清掉按鈕選擇，並以輸入為準
 $("#kwFree").addEventListener("input", function(){
   const t=this.value.trim();
   if (t){
+    state.cats=[];
     $("#kwAccordion").querySelectorAll(".kw-chip").forEach(c=>c.classList.remove("on"));
-    $("#kwSelected").style.display="none";
-    state.keyword = t;
+    renderCatTag();
+    state.freeKw = t;
   } else {
-    state.keyword = "";
+    state.freeKw = "";
   }
 });
 
@@ -961,15 +1026,46 @@ async function doSearch(){
   }
   const btn=$("#searchBtn"); btn.disabled=true; btn.textContent="搜尋中…";
   setBar("搜尋中…"); setStatus("搜尋中…");
-  clearMarkers(); SearchEngine.pagination=null;
+  clearMarkers(); SearchEngine.pagination=null; resultBuffer=[]; shownCount=0;
+  const kws = effectiveKeywords();
+  const multi = kws.length >= 2;
   try{
-    const results = await SearchEngine.run(state);
-    renderResults(results);
+    if (multi){
+      // 複選：各搜一次合併去重，一次給足；顯示 30，其餘按「載入更多」揭露
+      const all = await SearchEngine.searchMulti(state, kws);
+      resultBuffer = all.slice();
+      shownCount = Math.min(FIRST_SHOW, resultBuffer.length);
+      renderResults(resultBuffer.slice(0, shownCount));
+      refreshLoadMore();
+    } else {
+      const page1 = await SearchEngine.run(state, kws[0]||"");
+      resultBuffer = page1.slice();
+      shownCount = resultBuffer.length;
+      renderResults(resultBuffer);
+      refreshLoadMore();
+    }
   }catch(err){
     setBar("搜尋失敗"); setStatus('<b style="color:var(--accent-d)">⚠ '+esc(searchErrMsg(err))+'</b>');
-  }finally{
     btn.disabled=false; btn.textContent="🔍 搜尋美食";
+    return;
   }
+  btn.disabled=false; btn.textContent="🔍 搜尋美食";
+  if (!multi) topUpTo(FIRST_SHOW);   // 單選才背景補到 30；複選已一次給足
+}
+
+// 背景把顯示筆數補到 target（Google 每頁 20，需稍等 token 再換頁）
+async function topUpTo(target){
+  while (shownCount < target && SearchEngine.pagination && SearchEngine.pagination.hasNextPage){
+    await sleep(2100);
+    let more;
+    try { more = await SearchEngine.more(); } catch(e){ break; }
+    if (!more || !more.length) break;
+    resultBuffer = resultBuffer.concat(more);
+    const reveal = resultBuffer.slice(shownCount, target);
+    if (reveal.length){ renderResults(reveal, true); shownCount += reveal.length; }
+    refreshLoadMore();
+  }
+  refreshLoadMore();
 }
 
 /* 狀態訊息：寫進列表區（會被結果覆蓋，故每次重建） */
@@ -997,9 +1093,11 @@ function doNearby(){
     }
     setStatus("搜尋你附近…");
     try{
-      SearchEngine.pagination=null;
+      SearchEngine.pagination=null; resultBuffer=[]; shownCount=0;
       const results = await SearchEngine.runNearby(state, center, 1500);
+      resultBuffer = results.slice(); shownCount = results.length;
       renderResults(results);
+      refreshLoadMore();
     }catch(err){
       setBar("搜尋失敗"); setStatus('<b style="color:var(--accent-d)">⚠ '+esc(searchErrMsg(err))+'</b>');
     }finally{
@@ -1074,14 +1172,15 @@ function renderResults(list, append){
     refreshFavButtons(card, p.place_id);
   });
   if ($("#splitView").classList.contains("map-on")) fitMarkers();
-  updateLoadMore();
 }
 
 /* ---------- 載入更多 ---------- */
 function removeLoadMore(){ const e=$("#loadMoreBtn"); if(e) e.remove(); }
-function updateLoadMore(){
+function refreshLoadMore(){
   removeLoadMore();
-  if (SearchEngine.pagination && SearchEngine.pagination.hasNextPage){
+  const hasBuffered = shownCount < resultBuffer.length;
+  const hasMorePages = SearchEngine.pagination && SearchEngine.pagination.hasNextPage;
+  if (hasBuffered || hasMorePages){
     const b=document.createElement("button");
     b.id="loadMoreBtn"; b.className="load-more"; b.textContent="載入更多";
     b.addEventListener("click", loadMore);
@@ -1091,9 +1190,17 @@ function updateLoadMore(){
 async function loadMore(){
   const b=$("#loadMoreBtn"); if(!b) return;
   b.disabled=true; b.textContent="載入中…";
+  const target = shownCount + MORE_STEP;
   try{
-    const more = await SearchEngine.more();
-    renderResults(more, true);
+    while (resultBuffer.length < target && SearchEngine.pagination && SearchEngine.pagination.hasNextPage){
+      await sleep(2100);
+      const more = await SearchEngine.more();
+      if (!more || !more.length) break;
+      resultBuffer = resultBuffer.concat(more);
+    }
+    const reveal = resultBuffer.slice(shownCount, target);
+    if (reveal.length){ renderResults(reveal, true); shownCount += reveal.length; }
+    refreshLoadMore();
   }catch(err){
     if ($("#loadMoreBtn")){ $("#loadMoreBtn").disabled=false; $("#loadMoreBtn").textContent="載入更多（再試一次）"; }
   }
