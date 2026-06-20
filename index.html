@@ -1316,7 +1316,7 @@ async function toggleDetail(p, box, head){
       ${d.website?`<div class="drow"><b>官網</b><a href="${d.website}" target="_blank" rel="noopener">${d.website}</a></div>`:""}
       <div class="acts">
         <a href="${nav}" target="_blank" rel="noopener">🧭 導航</a>
-        <a class="alt" href="${d.url||"#"}" target="_blank" rel="noopener">在 Google 地圖開啟</a>
+        <a class="alt" href="${d.url||"#"}" target="_blank" rel="noopener">ℹ️ 店家資訊</a>
       </div>`;
   }catch(e){
     box.innerHTML='<div class="status" style="padding:4px 0">無法載入詳細資訊。</div>';
@@ -1437,7 +1437,7 @@ function renderFavList(){
         ${it.website?`<div class="drow"><b>官網</b><a href="${it.website}" target="_blank" rel="noopener">${it.website}</a></div>`:""}
         <div class="acts">
           <a href="${nav}" target="_blank" rel="noopener">🧭 導航</a>
-          <a class="alt" href="${it.mapUrl||nav}" target="_blank" rel="noopener">地圖</a>
+          <a class="alt" href="${it.mapUrl||nav}" target="_blank" rel="noopener">ℹ️ 店家資訊</a>
         </div>
         <div class="fav-row" style="padding:12px 0 0">
           <button data-c="want"  class="${it.category==='want'?'set-want':''}">⭐ 想去</button>
