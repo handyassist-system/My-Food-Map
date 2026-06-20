@@ -537,9 +537,15 @@ const SearchEngine = {
     return req;
   },
 
-  // 客戶端二次篩選（星級、價位精修）
+  // 客戶端二次篩選（國別離群、星級、價位精修）
   applyClientFilters(results, s){
     return results.filter(p=>{
+      // 國別離群：搜尋頁日本只留日本、台灣只留台灣（剔除明顯落在另一國的離群點，避免地圖被拉遠）
+      if (appMode!=="nearby"){
+        const addr = (p.formatted_address||p.vicinity||"");
+        if (s.country==="JP" && /台灣|臺灣|Taiwan/i.test(addr)) return false;
+        if (s.country==="TW" && /日本|Japan/i.test(addr)) return false;
+      }
       if (s.minStar && (p.rating||0) < Number(s.minStar)) return false;
       if (s.prices && s.prices.length && p.price_level != null){
         if (!this.priceMatches(p.price_level, s.prices)) return false;
@@ -756,6 +762,7 @@ function effectiveKeywords(){
   return state.cats.slice();
 }
 let markers = [];
+let myLocMarker = null;
 let lastResults = [];
 let resultBuffer = [];      // 已抓回的全部結果（含尚未顯示的）
 let shownCount = 0;         // 目前已顯示幾筆
@@ -1145,7 +1152,7 @@ function doNearby(){
     const center={lat:pos.coords.latitude, lng:pos.coords.longitude};
     clearMarkers();
     if (SearchEngine.map){
-      new google.maps.Marker({
+      myLocMarker = new google.maps.Marker({
         map:SearchEngine.map, position:center, title:"我的位置",
         icon:{path:google.maps.SymbolPath.CIRCLE,scale:8,fillColor:"#1A73E8",fillOpacity:1,strokeColor:"#fff",strokeWeight:2}
       });
@@ -1337,7 +1344,7 @@ async function toggleDetail(p, box, head){
 }
 
 /* ---------- 地圖標記 ---------- */
-function clearMarkers(){ markers.forEach(m=>m.setMap(null)); markers=[]; }
+function clearMarkers(){ markers.forEach(m=>m.setMap(null)); markers=[]; if(myLocMarker){myLocMarker.setMap(null);myLocMarker=null;} }
 function addMarker(p){
   if (!p.geometry || !SearchEngine.map) return;
   const m=new google.maps.Marker({
